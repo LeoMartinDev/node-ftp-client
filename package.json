@@ -1,0 +1,20 @@
+{
+  "name": "node-ftp-client",
+  "version": "1.0.0",
+  "main": "main.js",
+  "repository": "git@github.com:LeoMartinDev/node-ftp-client.git",
+  "author": "LeoMartinDev <leo1.martin@epitech.eu>",
+  "license": "MIT",
+  "scripts": {
+    "start": "npm run build && node dist/main.js",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@types/node": "^10.0.3",
+    "typescript": "^2.8.3"
+  },
+  "dependencies": {
+    "ftp-response-parser": "^1.0.1",
+    "rxjs": "^6.1.0"
+  }
+}
