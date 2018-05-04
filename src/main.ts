@@ -5,7 +5,7 @@ import { Observable, fromEvent, Subject, zip, combineLatest, Subscription } from
 import { map, withLatestFrom, concat, skip } from 'rxjs/operators';
 
 async function writeToServer(socket: Socket, command: Command) {
-  let { type, ...args } = command;
+  let { type, next, ...args } = command;
 
   args = Object.values(args).reduce((accumulator, value, index, array) => { return `${accumulator} ${value}${array.length - 1 < index ? ' ': ''}` }, '');
   console.log(`__${type}${args}__\n`)
@@ -18,7 +18,7 @@ function writeToSocket(socket: Socket, payload: string) {
 
 let isAuthenticated = false;
 let commandsSubject = new Subject<Command>();
-let commandsWithResponse$;
+let commandsWithResponse$: Observable<any>;
 let response$;
 let authsub: Subscription;
 
@@ -35,19 +35,25 @@ async function responseController(socket: Socket, response: any) {
       authsub.unsubscribe();
       //commandsWithResponse$ = response$.pipe(withLatestFrom(commandsSubject), map(([ response, command ]) => ({ command, response })));//commandsSubject.pipe(map(event => { console.log(event); return event})).subscribe();
       //commandsSubject.next({ type: Commands.PASV });
-/*       commandsWithResponse$ = zip(commandsSubject, response$).pipe(map(([ command, response ]) => ({ command, response })));
-      commandsWithResponse$.subscribe(console.log) */
-      setTimeout(() => commandsSubject.next({ type: Commands.LIST }), 200);
+      commandsWithResponse$ = zip(commandsSubject, response$).pipe(map(([ command, response ]) => { 
+        command.next({command, response});
+        return { command, response }}));
       break;
   }
+}
+
+function list() {
+  return new Promise(resolve => {
+    commandsSubject.next({ type: Commands.LIST, next: resolve });
+  })
 }
 
 async function start() {
   const socket = new Socket();
   const responseParser = new ResponseParser();
   response$ = fromEvent(responseParser, 'readable').pipe(map(() => responseParser.read()));
-  commandsWithResponse$ = zip(commandsSubject, response$.pipe(skip(1))).pipe(map(([ command, response ]) => ({ command, response })));
-  commandsWithResponse$.subscribe(console.log)
+/*   commandsWithResponse$ = zip(commandsSubject, response$.pipe(skip(1))).pipe(map(([ command, response ]) => ({ command, response })));
+  commandsWithResponse$.subscribe(console.log) */
   let commands$ = commandsSubject.subscribe(command => writeToServer(socket, command));
 
   fromEvent(socket, 'data').subscribe(data => responseParser.write(data));
@@ -55,6 +61,10 @@ async function start() {
   socket.once('connect', () => console.log('Connected!'));
   socket.on('error', error => console.error(error));
   socket.connect(21, 'localhost');
+  setTimeout(() => {
+    commandsWithResponse$.subscribe();
+    list().then(console.log);
+  }, 1500);
   //setInterval(() => commandsSubject.next({ type: Commands.NOOP }), 200);  
 }
 

@@ -11,6 +11,7 @@ export enum Commands {
 
 interface ICommand {
   type: Commands,
+  next?: Function,
 }
 
 export interface UserCommand extends ICommand {
