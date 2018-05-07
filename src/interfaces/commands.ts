@@ -7,6 +7,9 @@ export enum Commands {
   LIST = 'LIST',
   NOOP = 'NOOP',
   PASV = 'PASV',
+  FEAT = 'FEAT',
+  SIZE = 'SIZE',
+  PWD = 'PWD',
 }
 
 interface ICommand {
@@ -40,4 +43,16 @@ export interface PasvCommand extends ICommand {
   type: Commands.PASV,
 }
 
-export type Command = UserCommand | PassCommand | QuitCommand | ListCommand | NoopCommand | PasvCommand;
+export interface FeatCommand extends ICommand {
+  type: Commands.FEAT,
+}
+
+export interface SizeCommand extends ICommand {
+  type: Commands.SIZE,
+}
+
+export interface PWDCommand extends ICommand {
+  type: Commands.PWD,
+}
+
+export type Command = UserCommand | PassCommand | QuitCommand | ListCommand | NoopCommand | PasvCommand | FeatCommand | SizeCommand | PWDCommand;
